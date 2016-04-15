@@ -11,7 +11,7 @@ module LdapAdmin
     def initialize
 
       ldap_config = YAML.load(ERB.new(File.read(::Devise.ldap_config ||
-                                                    "#{Rails.root}/config/interfacer.yml")).result)[Rails.env]
+                                                    "#{Rails.root}/config/ldap.yml")).result)[Rails.env]
 
 
       @ldap = Net::LDAP.new
@@ -48,8 +48,7 @@ module LdapAdmin
       ou = params.include?(:ou) ? params[:ou] : LdapAdmin::DEFAULT_OU_PEOPLE
 
 
-      filter = Net::LDAP::Filter.eq("uid", params[:uid]) &
-          Net::LDAP::Filter.eq("ou", ou)
+      filter = Net::LDAP::Filter.eq("uid", params[:uid])
 
       @ldap.search(:base => base, :filter => filter)
     end

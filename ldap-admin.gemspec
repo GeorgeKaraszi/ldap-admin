@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'ldap/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "ldap-admin"
+  spec.name          = %q{ldap-admin}
   spec.version       = LdapAdmin::VERSION
   spec.authors       = ["George Karaszi"]
   spec.email         = ["GeorgeKaraszi@gmail.com"]
@@ -12,7 +12,12 @@ Gem::Specification.new do |spec|
   spec.summary       = "Performs search query and returns into a json block"
   spec.description   = spec.summary
   spec.homepage      = "https://github.com/GeorgeKaraszi/interfacer-admin"
+  spec.required_ruby_version = ">= 2.0.0"
 
+  spec.files = `git ls-files`.split $/
+  spec.bindir        = "exe"
+  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.require_paths = ["lib"]
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.
   if spec.respond_to?(:metadata)
@@ -25,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 11.0"
 
   spec.add_dependency('net-ldap', '~> 0.14.0')
+  spec.add_dependency('devise', '~> 3.5', '>= 3.5.6')
 
   spec.add_development_dependency('rdoc', '~> 4.2', '>= 4.2.2')
   spec.add_development_dependency('rails', '~> 4.2', '>= 4.2.6')
