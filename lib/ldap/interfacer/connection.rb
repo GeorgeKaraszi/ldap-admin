@@ -6,12 +6,12 @@ module LdapAdmin
   class Connection
 
     #
-    #Initialize connection class and bind to the ldap server
+    #Initialize connection class and bind to the interfacer server
     ##############################################################
     def initialize
 
       ldap_config = YAML.load(ERB.new(File.read(::Devise.ldap_config ||
-                                                    "#{Rails.root}/config/ldap.yml")).result)[Rails.env]
+                                                    "#{Rails.root}/config/interfacer.yml")).result)[Rails.env]
 
 
       @ldap = Net::LDAP.new
@@ -45,7 +45,7 @@ module LdapAdmin
 
       #Setup base search and organization parameters
       base = params.include?(:base)? params[:base] : @treeBase
-      ou = params.has_key?(:ou) ? params[:ou] : LdapAdmin::DEFAULT_OU_PEOPLE
+      ou = params.include?(:ou) ? params[:ou] : LdapAdmin::DEFAULT_OU_PEOPLE
 
 
       filter = Net::LDAP::Filter.eq("uid", params[:uid]) &

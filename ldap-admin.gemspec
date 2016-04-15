@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'ldap_administrator/version'
+require 'ldap/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "ldap_administrator"
-  spec.version       = LdapAdministrator::VERSION
+  spec.name          = "ldap-admin"
+  spec.version       = LdapAdmin::VERSION
   spec.authors       = ["George Karaszi"]
   spec.email         = ["GeorgeKaraszi@gmail.com"]
 
-  spec.summary       = "Performs ldap query and returns into a json block"
+  spec.summary       = "Performs search query and returns into a json block"
   spec.description   = spec.summary
-  spec.homepage      = "https://github.com/GeorgeKaraszi/ldap_administrator"
+  spec.homepage      = "https://github.com/GeorgeKaraszi/interfacer-admin"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
   # delete this section to allow pushing this gem to any host.
