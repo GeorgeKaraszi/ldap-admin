@@ -1,8 +1,8 @@
-require "net/ldap"
+require 'net/ldap'
 
 module LdapAdmin
-  DEFAULT_OU_GROUP = "Group"
-  DEFAULT_OU_PEOPLE = "People"
+  DEFAULT_OU_GROUP = 'Groups'
+  DEFAULT_OU_PEOPLE = 'People'
   class Connection
 
     #
@@ -15,15 +15,15 @@ module LdapAdmin
 
 
       @ldap = Net::LDAP.new
-      @ldap.host = ldap_config["host"]
-      @ldap.port = ldap_config["port"]
-      @treeBase  = ldap_config["domain"]
+      @ldap.host = ldap_config['host']
+      @ldap.port = ldap_config['port']
+      @tree_base  = ldap_config['domain']
 
-      if ldap_config["ssl"] === true
+      if ldap_config['ssl'] === true
         @ldap.encryption(:simple_tls)
       end
 
-      @ldap.authenticate(ldap_config["admin_user"], ldap_config["admin_password"])
+      @ldap.authenticate(ldap_config['admin_user'], ldap_config['admin_password'])
 
       unless @ldap.bind
         LdapAdmin::Logger.send(@ldap.get_operation_result.code)
@@ -33,22 +33,56 @@ module LdapAdmin
 
     end
 
+
+    def find_by(params = {})
+
+      if params.blank?
+        LdapAdmin::Logger.send('Error in find_by. No parameter provided')
+      end
+
+      base = params.include?(:dn) ? params[:dn] : @tree_base
+      filter = Net::LDAP::Filter.pres('dn')
+
+      params.except!(:dn).each do|key,value|
+        value.each do|v|
+          eql = Net::LDAP::Filter.eq("#{key}","#{v}")
+          filter = Net::LDAP::Filter.join(filter,eql)
+        end
+      end
+
+      @ldap.search(:base => base, :filter => filter)
+
+    end
+
+    #
+    #Performs a search query with a given DN
+    #####################################################
+    def find(params = {})
+      unless params.include?(:dn)
+        LdapAdmin::Logger.send('Error in find. No dn parameter provided')
+        return false
+      end
+
+      @ldap.search(:base => params[:dn])
+
+    end
+
     #
     #Find all LDAP Users
     #####################################################
     def find_users(params = {})
 
       unless params.include?(:uid)
-        LdapAdmin::Logger.send("Error in find_users. No uid parameter provided")
+        LdapAdmin::Logger.send('Error in find_users. No uid parameter provided')
         return false
       end
 
       #Setup base search and organization parameters
-      base = params.include?(:base)? params[:base] : @treeBase
       ou = params.include?(:ou) ? params[:ou] : LdapAdmin::DEFAULT_OU_PEOPLE
+      base = "ou=#{ou}," + (params.include?(:base)? params[:base] : @tree_base)
 
 
-      filter = Net::LDAP::Filter.eq("uid", params[:uid])
+      filter = Net::LDAP::Filter.eq('uid', params[:uid])
 
       @ldap.search(:base => base, :filter => filter)
     end
@@ -59,16 +93,15 @@ module LdapAdmin
     def find_groups(params = {})
 
       unless params.include?(:cn)
-        LdapAdmin::Logger.send("Error in find_groups. No CN parameter provided")
+        LdapAdmin::Logger.send('Error in find_groups. No CN parameter provided')
         return false
       end
 
       #Setup base search and organization parameters
-      base = params.include?(:base)? params[:base] : @treeBase
       ou = params.include?(:ou) ? params[:ou] : LdapAdmin::DEFAULT_OU_GROUP
+      base = "ou=#{ou}," + (params.include?(:base)? params[:base] : @tree_base)
 
-      filter = Net::LDAP::Filter.eq("cn", params[:cn]) &
-          Net::LDAP::Filter.eq("ou", ou)
+      filter = Net::LDAP::Filter.eq('cn', params[:cn])
 
       @ldap.search(:base => base, :filter => filter)
     end
@@ -84,9 +117,9 @@ module LdapAdmin
     #Find all OU objects
     #####################################################
     def find_organization_units(params = {})
-      base = params.has_key?(:base)? params[:base] : @treeBase
+      base = params.include?(:base)? params[:base] : @tree_base
 
-      filter = Net::LDAP::Filter.eq("ou", "*")
+      filter = Net::LDAP::Filter.eq('ou', '*')
       @ldap.search(:base => base, :filter => filter).map {|entry| entry.ou}
     end
 
@@ -95,13 +128,13 @@ module LdapAdmin
     #####################################################
     def find_group_members(params = {})
 
-      unless params.has_key?(:cn)
-        LdapAdmin::Logger.send("Error in find_group_members. No CN parameter provided.")
+      unless params.include?(:cn)
+        LdapAdmin::Logger.send('Error in find_group_members. No CN parameter provided.')
         return false
       end
 
-      base = params.include?(:base)? params[:base] : @treeBase
-      filter = Net::LDAP::Filter.eq("cn", params[:cn])
+      base = params.include?(:base)? params[:base] : @tree_base
+      filter = Net::LDAP::Filter.eq('cn', params[:cn])
 
 
         user_list = Hash.new
@@ -117,13 +150,33 @@ module LdapAdmin
       user_list
     end
 
-    def find_groups_user_belongs_to(params = {})
-      unless params.has_key?(:uid)
-        LdapAdmin::Logger.send("Error in find_groups_user_belongs_to. No uid parameter provided.")
-        return false
+
+    def user_belongs_to_group(params ={})
+      unless params.include?(:uid)
+
+      end
+    end
+
+    def find_user_groups(params = {})
+      unless params.include?(:dn)
+        LdapAdmin::Logger.send('Error in find_groups_user_belongs_to. No dn provided.')
+        false
       end
 
+      user = self.find(:dn => params[:dn]).first
+      unless user.attribute_names.include?(:gidNumber) || user.attribute_names.include?(:uid)
+        LdapAdmin::Logger.send('Error in find_groups_user_belongs_to. Could not locate target user with DN parameter.')
+        false
+      end
 
+      ou     = params.include?(:ou) ? params.ou : LdapAdmin::DEFAULT_OU_GROUP
+      base   = "ou=#{ou}," + (params.include?(:base) ? params.base : @tree_base)
+      filter = Net::LDAP::Filter.eq('uniquemember', user.dn) |
+               Net::LDAP::Filter.eq('memberuid', user.uid.first) |
+               Net::LDAP::Filter.eq('gidnumber', user.gidNumber.first)
+
+
+      @ldap.search(:base => base, :filter => filter)
     end
 
   end

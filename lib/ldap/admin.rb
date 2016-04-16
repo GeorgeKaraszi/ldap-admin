@@ -5,13 +5,18 @@ module LdapAdmin
     return LdapAdmin::Connection.new
    end
 
+   def self.find(params={})
+     self.get_connection.find(params)
+   end
+
     def self.get_user(params={})
       return self.get_connection.find_users(params)
     end
 
    def self.get_group(params={})
-#     return self.get_connection.find_group(params)
+     return self.get_connection.find_groups(params)
    end
+
 
    def self.get_all_users(params={})
      user_options = params
@@ -22,7 +27,7 @@ module LdapAdmin
 
    def self.get_all_groups(params={})
      group_options = params
-     group_options[:gid] = '*'
+     group_options[:cn] = '*'
 
      return self.get_connection.find_groups(group_options)
    end
@@ -31,8 +36,8 @@ module LdapAdmin
      return self.get_connection.find_organization_units(params)
    end
 
-    def self.get_group_membership(params={})
-      return self.get_connection
+    def self.get_user_groups(params={})
+      return self.get_connection.find_user_groups(params)
     end
 
   end

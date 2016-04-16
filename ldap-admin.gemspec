@@ -6,12 +6,13 @@ require 'ldap/version'
 Gem::Specification.new do |spec|
   spec.name          = %q{ldap-admin}
   spec.version       = LdapAdmin::VERSION
-  spec.authors       = ["George Karaszi"]
+  spec.authors       = ['George Karaszi', 'Curtis Schiewek', 'Daniel McNevin', 'Steven Xu']
   spec.email         = ["GeorgeKaraszi@gmail.com"]
 
-  spec.summary       = "Performs search query and returns into a json block"
+  spec.summary       = 'Interfaces with a given ldap server. Performs authentication with Devise, and performs user' +
+                       'and group search,edit, and deletion query'
   spec.description   = spec.summary
-  spec.homepage      = "https://github.com/GeorgeKaraszi/interfacer-admin"
+  spec.homepage      = 'https://github.com/GeorgeKaraszi/ldap-admin'
   spec.required_ruby_version = ">= 2.0.0"
 
   spec.files = `git ls-files`.split $/
